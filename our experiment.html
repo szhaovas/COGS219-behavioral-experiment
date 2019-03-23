@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="jspsych.js"></script>
+    <script src="plugins/jspsych-html-keyboard-response.js"></script>
+    <script src="plugins/jspsych-reconstruction.js"></script>
+    <link rel="stylesheet" href="css/jspsych.css"></link>
+  </head>
+  <body></body>
+  <script>
+
+  const directory = ['img/frown-1-70-180-70.jpg', 'img/neutral-1-70-180-70.jpg', 'img/smile-1-70-180-70.jpg', 'img/frown-2-229-197-0.jpg', 'img/neutral-2-229-197-0.jpg', 'img/smile-2-229-197-0.jpg'];
+  const num_sets = 2;
+  const conditions = ['frown', 'smile', 'neutral'];
+
+  const set1 = Math.floor(Math.random() * num_sets) + 1;
+  const set2 = (function () {
+    let result = Math.floor(Math.random() * num_sets) + 1;
+    while(result == set1) {
+      result = Math.floor(Math.random() * num_sets) + 1;
+    }
+    return result;
+  }());
+  const this_condition = conditions[Math.floor(Math.random() * conditions.length)];
+
+  const filename_matcher = new RegExp(this_condition + '-' + '[' + set1 + set2 + ']');
+  const images = (function () {
+    let result = [];
+    directory.forEach(filename => {
+      filename_matcher.test(filename) && result.push(filename);
+    })
+    return result;
+  }());
+
+  var test = function(param, stim){
+    let split_image_name = stim.split(/[-.]/);
+    let red_hex = Math.round(param*255).toString(16);
+    let green_hex = ('0' + parseInt(split_image_name[3], 10).toString(16)).substr(-2);
+    let blue_hex = ('0' + parseInt(split_image_name[4], 10).toString(16)).substr(-2);
+    let html = '<div style="height: 50%"><img src="'+stim+'" width="250" height="250"></div>'+
+      '<div style="display: block; margin: auto; height: 300px; width: 300px; position: relative;">'+
+      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: #'+red_hex+green_hex+blue_hex+'; '+
+      'width: 175px; height: 175px;"></div></div><p>Press F to make the square darker. Press J to make the square brighter.</p>'+
+      '<p>When the square is the same color as the picture, click Next.</p>';
+    return html;
+  }
+
+  var factors = {
+    stimulus: images,
+    starting_value: [0.25, 0.75]
+  }
+
+  var full_design = jsPsych.randomization.factorial(factors, 1);
+
+  var test = {
+    timeline: [{
+      type: 'reconstruction',
+      stimulus: jsPsych.timelineVariable('stimulus'),
+      stim_function: test,
+      starting_value: jsPsych.timelineVariable('starting_value'),
+      step_size: 0.05,
+      key_increase: 'j',
+      key_decrease: 'f',
+      button_label: 'Next',
+      on_finish: function(data){
+        data.starting_color = (this.starting_value == 0.75) ? 'bright start' : 'dim start';
+        data.difference = Math.round(data.final_value*255) - parseInt(this.stimulus.split(/[-.]/)[2], 10);
+      }
+    }],
+    timeline_variables: full_design
+  };
+
+  var subject_id = jsPsych.randomization.randomID(15);
+  jsPsych.data.addProperties({
+    subject: subject_id,
+    condition: this_condition
+  });
+
+  jsPsych.init({
+    timeline: [test],
+    preload_images: images,
+    show_preload_progress_bar: false,
+    on_finish: function() { jsPsych.data.displayData(); }
+  });
+
+  </script>
+</html>
