@@ -9,11 +9,20 @@
   <body></body>
   <script>
 
+  // If you want to add more pictures to the stimuli pool, please be sure to add
+  // them in .jpg form in the folder /img/
+  // Also make sure to name them in the template "img/[frown/neutral/smile]-[set number]-[Red value in RGB]-[Green value in RGB]-[Blue value in RGB].jpg"
+  // and add the name to the directory array
+  // Also remember modify num_sets accordingly (what is the largest [set number] in /img/ after you added the image file?)
   const directory = ['img/frown-1-70-180-70.jpg', 'img/neutral-1-70-180-70.jpg', 'img/smile-1-70-180-70.jpg', 'img/frown-2-229-197-0.jpg', 'img/neutral-2-229-197-0.jpg', 'img/smile-2-229-197-0.jpg'];
   const num_sets = 2;
   const conditions = ['frown', 'smile', 'neutral'];
 
+  // This line randomly selects a set number from which to draw the image
+  // you can think of set number as an identifier of face, so for each set number there should be 3 images with the same RGB value, same face, but different facial expressions.
   const set1 = Math.floor(Math.random() * num_sets) + 1;
+  // This line randomly selects a DIFFERENT set number from which to draw the image
+  // As we expand the set size (for each participant), just use the set2 code template to create set3, set4 etc.
   const set2 = (function () {
     let result = Math.floor(Math.random() * num_sets) + 1;
     while(result == set1) {
@@ -21,8 +30,14 @@
     }
     return result;
   }());
+  // randomly selects a facial expression to be applied on this participant, can be one of "frown", "smile", or "neutral"
+  // all pictures shown to this participant will be of the facial expression selected
   const this_condition = conditions[Math.floor(Math.random() * conditions.length)];
 
+  // These lines select the wanted images from /img/ folder to form the stimuli set used on this participant
+  // the images chosen must be of the template "img/[this_condition]-[set1/set2/...][we don't care what follows]"
+  // REMEMBER to add more sets to the line below if you wish to add in more sets
+  // The number of images selected should be [set size], and they should all have the same facial expression, RGB values can be different
   const filename_matcher = new RegExp(this_condition + '-' + '[' + set1 + set2 + ']');
   const images = (function () {
     let result = [];
@@ -32,6 +47,17 @@
     return result;
   }());
 
+  // These lines make sure each image is shown in two conditions, 1 starting dim and 1 starting bright
+  var factors = {
+    stimulus: images,
+    starting_value: [0.25, 0.75]
+  }
+  var full_design = jsPsych.randomization.factorial(factors, 1);
+
+  // This is the reconstruction function
+  // It reads the RGB values of the image used for 1 trial (from the file names, which is why they must include RGB values)
+  // and use those to construct the color selection square to be displayed below the image
+  // By pressing either F or J, participants are only allowed to modify to "Red value" of the color selection square
   var test = function(param, stim){
     let split_image_name = stim.split(/[-.]/);
     let red_hex = Math.round(param*255).toString(16);
@@ -45,13 +71,6 @@
     return html;
   }
 
-  var factors = {
-    stimulus: images,
-    starting_value: [0.25, 0.75]
-  }
-
-  var full_design = jsPsych.randomization.factorial(factors, 1);
-
   var test = {
     timeline: [{
       type: 'reconstruction',
@@ -63,6 +82,8 @@
       key_decrease: 'f',
       button_label: 'Next',
       on_finish: function(data){
+        // starting_color can be either "bright start" or "dim start"
+        // difference is the difference between "Red values" of the stimulus image and the eventual color selection square
         data.starting_color = (this.starting_value == 0.75) ? 'bright start' : 'dim start';
         data.difference = Math.round(data.final_value*255) - parseInt(this.stimulus.split(/[-.]/)[2], 10);
       }
@@ -70,6 +91,7 @@
     timeline_variables: full_design
   };
 
+  // For each participant, add a random ID and the facial expression used in his/her experiment run
   var subject_id = jsPsych.randomization.randomID(15);
   jsPsych.data.addProperties({
     subject: subject_id,
