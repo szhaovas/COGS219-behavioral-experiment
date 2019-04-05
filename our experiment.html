@@ -9,63 +9,87 @@
   <body></body>
   <script>
 
+  /*change log
+  1. Add satuation as an attribute of filename and read from it to generate satuation of the matching block
+  2. dim and bright_value should be relative to the original hue of the facial image, also make sure it's RANDOM
+  (?)3. fixation cross
+  4. practice trial
+  */
+
   // If you want to add more pictures to the stimuli pool, please be sure to add
   // them in .jpg form in the folder /img/
-  // Also make sure to name them in the template "img/[frown/neutral/smile]-[set number]-[Red value in RGB]-[Green value in RGB]-[Blue value in RGB].jpg"
+  // Also make sure to name them in the template
+  // "img/[frown/smile]~[light/medium/dark]~[hue]~[facial ID]~[brightness].jpg"
   // and add the name to the directory array
-  // Also remember modify num_sets accordingly (what is the largest [set number] in /img/ after you added the image file?)
-  const directory = ['img/frown-1-70-180-70.jpg', 'img/neutral-1-70-180-70.jpg', 'img/smile-1-70-180-70.jpg', 'img/frown-2-229-197-0.jpg', 'img/neutral-2-229-197-0.jpg', 'img/smile-2-229-197-0.jpg'];
-  const num_sets = 2;
-  const conditions = ['frown', 'smile', 'neutral'];
+  const directory = ['img/frown~dark~22~0~51.jpg', 'img/frown~light~17~0~88.8.jpg', 'img/frown~medium~26~0~67.6.jpg', 'img/smile~dark~22~0~51.jpg', 'img/smile~light~17~0~88.8', 'img/smile~medium~26~0~67.6'];
+  const facial_expressions = ['frown', 'smile'];
+  const skin_tone_categories = ['light', 'medium', 'dark'];
+  const satuation = 50;
+  const dim_value = 0.25;
+  const bright_value = 0.75;
+  const num_hues = 3;
+  const num_faces_each_hue = 2;
+  const num_images = num_hues * num_faces_each_hue;
 
-  // This line randomly selects a set number from which to draw the image
-  // you can think of set number as an identifier of face, so for each set number there should be 3 images with the same RGB value, same face, but different facial expressions.
-  const set1 = Math.floor(Math.random() * num_sets) + 1;
-  // This line randomly selects a DIFFERENT set number from which to draw the image
-  // As we expand the set size (for each participant), just use the set2 code template to create set3, set4 etc.
-  const set2 = (function () {
-    let result = Math.floor(Math.random() * num_sets) + 1;
-    while(result == set1) {
-      result = Math.floor(Math.random() * num_sets) + 1;
+  // randomly selects a facial expression and a skin tone
+  // all images in this run will have the selected facial expression and skin tone
+  const this_facial_expression = facial_expressions[Math.floor(Math.random() * facial_expressions.length)];
+  const this_skinTone = skin_tone_categories[Math.floor(Math.random() * skin_tone_categories.length)];
+
+  // randomly selects [num_hues] hues
+  const hue_matcher = new RegExp(this_facial_expression + '~' +  this_skinTone);
+  const hue_pool = (function() {
+    let result = [];
+    directory.forEach(filename => {
+      hue_matcher.test(filename) && result.push(parseInt(filename.split('~')[2]));
+    });
+    return result;
+  }());
+  const hues = jsPsych.randomization.sampleWithoutReplacement(hue_pool, num_hues);
+
+  // randomly select [num_faces_each_hue] faces for each hue selected in the previous step
+  // and create the images array containing the images that will be used in this run
+  const images = (function() {
+    let result = [];
+    for (let h = 0; h < num_hues; h++) {
+      let face_matcher = new RegExp(this_facial_expression + '~' +  this_skinTone + '~' + hues[h]);
+      let shuffled_directory = jsPsych.randomization.repeat(directory, 1);
+      for (let counter = 0, i = 0; (counter < num_faces_each_hue) && (i < shuffled_directory.length); i++) {
+        let filename = shuffled_directory[i];
+        if (face_matcher.test(filename)) {
+           result.push(filename);
+           counter++;
+         }
+      }
     }
     return result;
   }());
-  // randomly selects a facial expression to be applied on this participant, can be one of "frown", "smile", or "neutral"
-  // all pictures shown to this participant will be of the facial expression selected
-  const this_condition = conditions[Math.floor(Math.random() * conditions.length)];
 
-  // These lines select the wanted images from /img/ folder to form the stimuli set used on this participant
-  // the images chosen must be of the template "img/[this_condition]-[set1/set2/...][we don't care what follows]"
-  // REMEMBER to add more sets to the line below if you wish to add in more sets
-  // The number of images selected should be [set size], and they should all have the same facial expression, RGB values can be different
-  const filename_matcher = new RegExp(this_condition + '-' + '[' + set1 + set2 + ']');
-  const images = (function () {
+  // These lines make sure each image is shown in 1 of the 2 starting colors, either starting dim or starting bright
+  const full_design = (function() {
     let result = [];
-    directory.forEach(filename => {
-      filename_matcher.test(filename) && result.push(filename);
-    })
+    let shuffled_images = jsPsych.randomization.repeat(images, 1);
+    let starting_colors = jsPsych.randomization.repeat([dim_value, bright_value], (num_images / 2));
+    for (let i = 0; i < num_images; i++) {
+      let obj = {
+        stimulus: shuffled_images.pop(),
+        starting_value: starting_colors.pop()
+      }
+      result.push(obj);
+    };
     return result;
   }());
-
-  // These lines make sure each image is shown in two conditions, 1 starting dim and 1 starting bright
-  var factors = {
-    stimulus: images,
-    starting_value: [0.25, 0.75]
-  }
-  var full_design = jsPsych.randomization.factorial(factors, 1);
 
   // This is the reconstruction function
   // It reads the RGB values of the image used for 1 trial (from the file names, which is why they must include RGB values)
   // and use those to construct the color selection square to be displayed below the image
   // By pressing either F or J, participants are only allowed to modify to "Red value" of the color selection square
   var test = function(param, stim){
-    let split_image_name = stim.split(/[-.]/);
-    let red_hex = Math.round(param*255).toString(16);
-    let green_hex = ('0' + parseInt(split_image_name[3], 10).toString(16)).substr(-2);
-    let blue_hex = ('0' + parseInt(split_image_name[4], 10).toString(16)).substr(-2);
+    let h = stim.split('~')[2];
+    let b = param * 100;
     let html = '<div style="height: 50%"><img src="'+stim+'" width="250" height="250"></div>'+
       '<div style="display: block; margin: auto; height: 300px; width: 300px; position: relative;">'+
-      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: #'+red_hex+green_hex+blue_hex+'; '+
+      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: hsl('+h+','+satuation+'%,'+b+'%); '+
       'width: 175px; height: 175px;"></div></div><p>Press F to make the square darker. Press J to make the square brighter.</p>'+
       '<p>When the square is the same color as the picture, click Next.</p>';
     return html;
@@ -83,19 +107,20 @@
       button_label: 'Next',
       on_finish: function(data){
         // starting_color can be either "bright start" or "dim start"
-        // difference is the difference between "Red values" of the stimulus image and the eventual color selection square
-        data.starting_color = (this.starting_value == 0.75) ? 'bright start' : 'dim start';
-        data.difference = Math.round(data.final_value*255) - parseInt(this.stimulus.split(/[-.]/)[2], 10);
+        // difference is the difference between stimulus image's and the final color match square's brightnesses
+        data.starting_color = (this.starting_value == bright_value) ? 'bright start' : 'dim start';
+        data.difference = data.final_value * 100 - parseFloat(this.stimulus.slice(0, -4).split('~')[4]);
       }
     }],
     timeline_variables: full_design
   };
 
   // For each participant, add a random ID and the facial expression used in his/her experiment run
-  var subject_id = jsPsych.randomization.randomID(15);
+  var subject_id = jsPsych.randomization.randomID(2);
   jsPsych.data.addProperties({
     subject: subject_id,
-    condition: this_condition
+    facial_expressions: this_facial_expression,
+    skinTone: this_skinTone
   });
 
   jsPsych.init({
