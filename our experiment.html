@@ -22,7 +22,7 @@
   // Also make sure to name them in the template
   // "img/[frown/smile]~[light/medium/dark]~[hue]~[facial ID]~[saturation]~[brightness].jpg"
   // and add the name to the directory array
-  const directory = ['img/frown~dark~20~0~36~49.jpg',
+  let directory = ['img/frown~dark~20~0~36~49.jpg',
 'img/frown~dark~20~1~36~49.jpg',
 'img/frown~dark~22~2~44~51.jpg',
 'img/frown~dark~22~3~44~51.jpg',
@@ -73,10 +73,14 @@
   // randomly selects [num_hues] hues
   const hue_matcher = new RegExp(this_facial_expression + '~' + this_skinTone);
   const hue_pool = (function() {
+    let repeated_result = [];
     let result = [];
     directory.forEach(filename => {
-      hue_matcher.test(filename) && result.push(parseInt(filename.split('~')[2]));
+      hue_matcher.test(filename) && repeated_result.push(parseInt(filename.split('~')[2]));
     });
+    for (let i = 0; i < repeated_result.length; i++) {
+      !(result.includes(repeated_result[i])) && result.push(repeated_result[i]);
+    }
     return result;
   }());
   const hues = jsPsych.randomization.sampleWithoutReplacement(hue_pool, num_hues);
@@ -92,6 +96,9 @@
         let filename = shuffled_directory[i];
         if (face_matcher.test(filename)) {
            result.push(filename);
+           directory = directory.filter(function(value, index, arr){
+             return value != filename;
+           });
            counter++;
          }
       }
