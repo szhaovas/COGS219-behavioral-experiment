@@ -4,29 +4,63 @@
     <script src="jspsych.js"></script>
     <script src="plugins/jspsych-html-keyboard-response.js"></script>
     <script src="plugins/jspsych-reconstruction.js"></script>
+    <script src="plugins/jspsych-fullscreen.js"></script>
     <link rel="stylesheet" href="css/jspsych.css"></link>
   </head>
   <body></body>
   <script>
 
   /*change log
-  1. Add satuation as an attribute of filename and read from it to generate satuation of the matching block
+  1. Add saturation as an attribute of filename and read from it to generate saturation of the matching block
   2. dim and bright_value should be relative to the original hue of the facial image, also make sure it's RANDOM
-  (?)3. fixation cross
-  4. practice trial
+  3. practice trial
+  4. fullscreen
   */
 
   // If you want to add more pictures to the stimuli pool, please be sure to add
   // them in .jpg form in the folder /img/
   // Also make sure to name them in the template
-  // "img/[frown/smile]~[light/medium/dark]~[hue]~[facial ID]~[brightness].jpg"
+  // "img/[frown/smile]~[light/medium/dark]~[hue]~[facial ID]~[saturation]~[brightness].jpg"
   // and add the name to the directory array
-  const directory = ['img/frown~dark~22~0~51.jpg', 'img/frown~light~17~0~88.8.jpg', 'img/frown~medium~26~0~67.6.jpg', 'img/smile~dark~22~0~51.jpg', 'img/smile~light~17~0~88.8', 'img/smile~medium~26~0~67.6'];
+  const directory = ['img/frown~dark~20~0~36~49.jpg',
+'img/frown~dark~20~1~36~49.jpg',
+'img/frown~dark~22~2~44~51.jpg',
+'img/frown~dark~22~3~44~51.jpg',
+'img/frown~dark~26~4~42.9~52.jpg',
+'img/frown~dark~26~5~42.9~52.jpg',
+'img/frown~light~12~0~62.5~84.3.jpg',
+'img/frown~light~12~1~62.5~84.3.jpg',
+'img/frown~light~17~2~82.5~88.8.jpg',
+'img/frown~light~17~3~82.5~88.8.jpg',
+'img/frown~light~26~4~53.8~87.3.jpg',
+'img/frown~light~26~5~53.8~87.3.jpg',
+'img/frown~medium~24~4~75.8~67.6.jpg',
+'img/frown~medium~24~5~75.8~67.6.jpg',
+'img/frown~medium~26~2~69.7~67.6.jpg',
+'img/frown~medium~26~3~69.7~67.6.jpg',
+'img/frown~medium~30~0~58.8~66.7.jpg',
+'img/frown~medium~30~1~58.8~66.7.jpg',
+'img/smile~dark~20~0~36~49.jpg',
+'img/smile~dark~20~1~36~49.jpg',
+'img/smile~dark~22~2~44~51.jpg',
+'img/smile~dark~22~3~44~51.jpg',
+'img/smile~dark~26~4~42.9~52.jpg',
+'img/smile~dark~26~5~42.9~52.jpg',
+'img/smile~light~12~0~62.5~84.3.jpg',
+'img/smile~light~12~1~62.5~84.3.jpg',
+'img/smile~light~17~2~82.5~88.8.jpg',
+'img/smile~light~17~3~82.5~88.8.jpg',
+'img/smile~light~26~4~53.8~87.3.jpg',
+'img/smile~light~26~5~53.8~87.3.jpg',
+'img/smile~medium~24~5~75.8~67.6.jpg',
+'img/smile~medium~24~4~75.8~67.6.jpg',
+'img/smile~medium~26~2~69.7~67.6.jpg',
+'img/smile~medium~26~3~69.7~67.6.jpg',
+'img/smile~medium~30~0~58.8~66.7.jpg',
+'img/smile~medium~30~1~58.8~66.7.jpg'];
   const facial_expressions = ['frown', 'smile'];
   const skin_tone_categories = ['light', 'medium', 'dark'];
-  const satuation = 50;
-  const dim_value = 0.25;
-  const bright_value = 0.75;
+  const practice_image = 'img/practice~45~100.jpg';
   const num_hues = 3;
   const num_faces_each_hue = 2;
   const num_images = num_hues * num_faces_each_hue;
@@ -37,7 +71,7 @@
   const this_skinTone = skin_tone_categories[Math.floor(Math.random() * skin_tone_categories.length)];
 
   // randomly selects [num_hues] hues
-  const hue_matcher = new RegExp(this_facial_expression + '~' +  this_skinTone);
+  const hue_matcher = new RegExp(this_facial_expression + '~' + this_skinTone);
   const hue_pool = (function() {
     let result = [];
     directory.forEach(filename => {
@@ -69,11 +103,17 @@
   const full_design = (function() {
     let result = [];
     let shuffled_images = jsPsych.randomization.repeat(images, 1);
-    let starting_colors = jsPsych.randomization.repeat([dim_value, bright_value], (num_images / 2));
+    let starting_colors = jsPsych.randomization.repeat(['dim', 'bright'], (num_images / 2));
     for (let i = 0; i < num_images; i++) {
+      let this_stimulus = shuffled_images.pop();
+      let this_starting_color = starting_colors.pop();
+      let this_orig_brightness = parseFloat(this_stimulus.slice(0, -4).split('~')[5]);
+      let this_starting_value = (jsPsych.timelineVariable('starting_color') === 'dim') ? (Math.random() * this_orig_brightness / 100) : (1 - Math.random() * this_orig_brightness / 100);
       let obj = {
-        stimulus: shuffled_images.pop(),
-        starting_value: starting_colors.pop()
+        stimulus: this_stimulus,
+        starting_color: this_starting_color,
+        orig_brightness: this_orig_brightness,
+        starting_value: this_starting_value
       }
       result.push(obj);
     };
@@ -84,36 +124,81 @@
   // It reads the RGB values of the image used for 1 trial (from the file names, which is why they must include RGB values)
   // and use those to construct the color selection square to be displayed below the image
   // By pressing either F or J, participants are only allowed to modify to "Red value" of the color selection square
-  var test = function(param, stim){
+  var experimental_trial_func = function(param, stim){
     let h = stim.split('~')[2];
+    let s = stim.split('~')[4];
     let b = param * 100;
-    let html = '<div style="height: 50%"><img src="'+stim+'" width="250" height="250"></div>'+
+    let html = '<div style="height: 50%"><img src="'+stim+'" width="350" height="250"></div>'+
       '<div style="display: block; margin: auto; height: 300px; width: 300px; position: relative;">'+
-      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: hsl('+h+','+satuation+'%,'+b+'%); '+
-      'width: 175px; height: 175px;"></div></div><p>Press F to make the square darker. Press J to make the square brighter.</p>'+
+      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: hsl('+h+','+s+'%,'+b+'%); '+
+      'width: 175px; height: 175px;"></div></div><p>Press D to make the block darker. Press B to make the square brighter.</p>'+
       '<p>When the square is the same color as the picture, click Next.</p>';
     return html;
   }
 
-  var test = {
+  var experimental_trials = {
     timeline: [{
       type: 'reconstruction',
       stimulus: jsPsych.timelineVariable('stimulus'),
-      stim_function: test,
+      stim_function: experimental_trial_func,
+      starting_color: jsPsych.timelineVariable('starting_color'),
+      orig_brightness: jsPsych.timelineVariable('orig_brightness'),
       starting_value: jsPsych.timelineVariable('starting_value'),
-      step_size: 0.05,
-      key_increase: 'j',
-      key_decrease: 'f',
+      step_size: 0.025,
+      key_increase: 'b',
+      key_decrease: 'd',
       button_label: 'Next',
       on_finish: function(data){
-        // starting_color can be either "bright start" or "dim start"
+        // starting_color can be either "bright" or "dim"
         // difference is the difference between stimulus image's and the final color match square's brightnesses
-        data.starting_color = (this.starting_value == bright_value) ? 'bright start' : 'dim start';
-        data.difference = data.final_value * 100 - parseFloat(this.stimulus.slice(0, -4).split('~')[4]);
+        data.starting_color = this.starting_color;
+        data.starting_value = this.starting_value;
+        data.difference = data.final_value * 100 - this.orig_brightness;
       }
     }],
     timeline_variables: full_design
   };
+
+  var practice_trial_func = function(param, stim){
+    let h = stim.split('~')[1];
+    let s = stim.slice(0, -4).split('~')[2];
+    let b = param * 100;
+    let html = '<div style="height: 50%"><img src="'+stim+'" width="350" height="250"></div>'+
+      '<div style="display: block; margin: auto; height: 300px; width: 300px; position: relative;">'+
+      '<div style="display: block; position: absolute; top: 62.5px; left: 62.5px; background-color: hsl('+h+','+s+'%,'+b+'%); '+
+      'width: 175px; height: 175px;"></div></div><p>This is a practice trial. Your task is to change the color of the block so that it matches the color of the image you see at the top.</p>'+
+      '<p>You may do this by pressing D to make the square darker, or B to make it brighter.</p>' +
+      '<p>Make sure you are familiar with the interface. Click Start when you are ready.</p>' +
+      '<p><b>Please do not quit fullscreen during the experiment.</b></p>';
+    return html;
+  }
+
+  var practice_trial = {
+    type: 'reconstruction',
+    stimulus: practice_image,
+    stim_function: practice_trial_func,
+    starting_value: Math.random(),
+    step_size: 0.05,
+    key_increase: 'b',
+    key_decrease: 'd',
+    button_label: 'Start'
+  }
+
+  var start_fullscreen = {
+    type: 'fullscreen',
+    fullscreen_mode: true
+  }
+
+  var end_fullscreen = {
+    type: 'fullscreen',
+    fullscreen_mode: false
+  }
+
+  const preloady = (function() {
+    let result = images;
+    result.unshift(practice_image);
+    return result;
+  }());
 
   // For each participant, add a random ID and the facial expression used in his/her experiment run
   var subject_id = jsPsych.randomization.randomID(2);
@@ -124,8 +209,8 @@
   });
 
   jsPsych.init({
-    timeline: [test],
-    preload_images: images,
+    timeline: [start_fullscreen, practice_trial, experimental_trials, end_fullscreen],
+    preload_images: preloady,
     show_preload_progress_bar: false,
     on_finish: function() { jsPsych.data.displayData(); }
   });
