@@ -63,12 +63,13 @@
   const num_hues = 3;
   const num_faces_each_hue = 2;
   const num_images = num_hues * num_faces_each_hue;
+  var id = jsPsych.data.getURLVariable('prolific_pid');
   const subject_id = jsPsych.randomization.randomID(2);
   let assigned_condition = null;
   let this_facial_expression = null;
   let this_skinTone = null;
 
-  serverComm.register_subject(subject_id,
+  serverComm.register_subject(id,
     function(){ // this is the success callback. the function executes if the subject has a unique id
       continue_success();
     },
@@ -76,7 +77,7 @@
       document.querySelector('body').innerHTML = '<p>Our records indicate that you have already started this experiment. Due to the nature of the experiment, restarting is not permitted.</p><p>If you believe this message is in error, you can contact the researchers at wguo@vassar.edu. Our apologies for the trouble.</p>';
     },
     function(){ // this is the failure callback. show technical error message.
-      document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You will not be able to complete the experiment. We are sorry for the trouble.</p>';
+      document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You were not registered successfully.</p>';
     }
   );
 
