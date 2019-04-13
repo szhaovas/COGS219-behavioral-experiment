@@ -275,8 +275,8 @@
     jsPsych.init({
       timeline: [start_fullscreen, practice_trial, experimental_trials, save, conclusion, end_fullscreen],
       preload_images: preloady,
-      show_preload_progress_bar: false,
-      on_finish: function() { jsPsych.data.displayData(); }
+      show_preload_progress_bar: false
+      //on_finish: function() { jsPsych.data.displayData(); }
     });
   }
   </script>
