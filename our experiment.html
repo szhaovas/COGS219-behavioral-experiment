@@ -63,23 +63,11 @@
   const num_hues = 3;
   const num_faces_each_hue = 2;
   const num_images = num_hues * num_faces_each_hue;
-  var id = jsPsych.data.getURLVariable('prolific_pid');
-  const subject_id = jsPsych.randomization.randomID(2);
+  const id = jsPsych.data.getURLVariable('prolific_pid');
+  const subject_id = jsPsych.randomization.randomID(20);
   let assigned_condition = null;
   let this_facial_expression = null;
   let this_skinTone = null;
-
-  serverComm.register_subject(id,
-    function(){ // this is the success callback. the function executes if the subject has a unique id
-      continue_success();
-    },
-    function(){ // this is the excluded callback. show excluded message.
-      document.querySelector('body').innerHTML = '<p>Our records indicate that you have already started this experiment. Due to the nature of the experiment, restarting is not permitted.</p><p>If you believe this message is in error, you can contact the researchers at wguo@vassar.edu. Our apologies for the trouble.</p>';
-    },
-    function(){ // this is the failure callback. show technical error message.
-      document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You were not registered successfully.</p>';
-    }
-  );
 
   serverComm.assign_condition(subject_id, 6,
     function(response){
@@ -268,6 +256,7 @@
 
     // For each trial, add a subject_id generated at the start and the facial expression used in his/her experiment run
     jsPsych.data.addProperties({
+      worker_id: id,
       subject: subject_id,
       facial_expressions: this_facial_expression,
       skinTone: this_skinTone
