@@ -1,0 +1,7 @@
+"0","```r
+lag8.n2 <- eeg.data %>%
+  filter(electrode %in% c(64, 68, 69, 89, 94, 95)) %>%
+  filter(lag.condition == \"Lag8\") %>%
+  group_by(subject, t, distractor.condition) %>%
+  summarize(M.voltage = mean(voltage))
+```"

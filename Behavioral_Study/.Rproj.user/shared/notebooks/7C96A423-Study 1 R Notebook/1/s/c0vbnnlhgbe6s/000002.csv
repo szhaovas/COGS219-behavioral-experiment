@@ -1,0 +1,57 @@
+"0","```r
+n2.target.t.test.data <- n2.target.anova.data %>%
+  group_by(subject, distractor.condition) %>% 
+  summarize(M=mean(average))
+t.test(M ~ distractor.condition,
+       data = (n2.target.t.test.data %>% filter(distractor.condition != \"Neutral\")), 
+       paired = TRUE,
+       alternative=\"less\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = -3.5947, df = 21, p-value = 0.0008525
+alternative hypothesis: true difference in means is less than 0
+95 percent confidence interval:
+      -Inf -0.516237
+sample estimates:
+mean of the differences 
+             -0.9902751 
+"
+"0","```r
+t.test(M ~ distractor.condition,
+       data = (n2.target.t.test.data %>% filter(distractor.condition != \"Negative\")),
+       paired = TRUE, 
+       alternative=\"less\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = -3.7654, df = 21, p-value = 0.0005685
+alternative hypothesis: true difference in means is less than 0
+95 percent confidence interval:
+      -Inf -0.390986
+sample estimates:
+mean of the differences 
+             -0.7200393 
+"
+"0","```r
+t.test(M ~ distractor.condition,
+       data = (n2.target.t.test.data %>% filter(distractor.condition != \"Baseline\")),
+       paired = TRUE,
+       alternative=\"greater\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = 0.76434, df = 21, p-value = 0.2266
+alternative hypothesis: true difference in means is greater than 0
+95 percent confidence interval:
+ -0.3381435        Inf
+sample estimates:
+mean of the differences 
+              0.2702359 
+"

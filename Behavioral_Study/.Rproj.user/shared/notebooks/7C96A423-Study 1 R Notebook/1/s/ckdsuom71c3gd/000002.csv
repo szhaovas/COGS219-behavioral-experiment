@@ -1,0 +1,22 @@
+"0","```r
+p3b.correct.incorrect.plot.data <- p3b.correct.incorrect %>%
+  group_by(correct.condition, t) %>%
+  summarize(M = mean(voltage))
+p3b.correct.incorrect.difference.wave.plot.data <- p3b.correct.incorrect.difference.wave %>%
+  group_by(t) %>%
+  summarize(M = mean(difference.wave))
+ggplot(p3b.correct.incorrect.plot.data, aes(x=t,y=M,color=correct.condition))+ 
+  geom_line()+ 
+  geom_line(data=p3b.correct.incorrect.difference.wave.plot.data, aes(color=NA))+
+  scale_y_reverse()+
+  scale_x_continuous(limits = c(-200,1200), expand=c(0,0))+
+  annotate(\"rect\", xmin=400,xmax=550,ymin=-2,ymax=4, alpha=0.2)+
+  annotate(\"rect\", xmin=635,xmax=995,ymin=-2,ymax=4, alpha=0.2)+
+  ggtitle(\"Distractor and Target P3b Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"activations (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = 475, y = -2, label = \"Distractor \n P3b\") +
+  annotate(\"text\", x = 800, y = -2, label = \"Target \n P3b\") +
+  annotate(\"text\", x = 1100, y = -1.5, label = \"Correct \n - Incorrect\")
+```"

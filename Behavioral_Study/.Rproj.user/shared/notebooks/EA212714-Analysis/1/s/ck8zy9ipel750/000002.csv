@@ -1,0 +1,13 @@
+"0","```r
+aov(frequencies ~ distractor_type * target_lag, data = processed_data)
+```"
+"1","Call:
+   aov(formula = frequencies ~ distractor_type * target_lag, data = processed_data)
+
+Terms:
+                distractor_type target_lag distractor_type:target_lag
+Sum of Squares       0.01750603 0.02538585                 0.01777644
+Deg. of Freedom               2          1                          2
+
+Estimated effects may be unbalanced
+"

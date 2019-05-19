@@ -1,0 +1,15 @@
+"0","```r
+n2.distractor.plot.data <- n2.distractor.difference.waves %>%
+  group_by(t, distractor.condition) %>%
+  summarize(M = mean(difference.wave))
+ggplot(n2.distractor.plot.data, aes(x=t, y=M, color=distractor.condition)) +
+  geom_line() +
+  geom_vline(xintercept = 0) +
+  annotate(\"rect\", fill=\"black\", alpha=0.1, xmin=185, xmax=275, ymin=-1, ymax=2.5) +
+  scale_y_reverse() +
+  ggtitle(\"Distractor N2 Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"lag8 - baseline lag8 (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = -100, y = 1, label = \"Distractor \n onset\")
+```"

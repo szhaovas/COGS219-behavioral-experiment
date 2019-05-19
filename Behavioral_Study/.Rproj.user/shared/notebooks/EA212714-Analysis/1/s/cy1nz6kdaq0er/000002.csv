@@ -1,0 +1,11 @@
+"0","```r
+processed_data <- data %>%
+  filter(phase == \"test\") %>%
+  filter(target_lag %in% c(2, 8)) %>%
+  select(target_lag, distractor_type, correct) %>%
+  mutate(target_lag = as.numeric(as.character(target_lag))) %>%
+  group_by(distractor_type, target_lag) %>%
+  count(correct) %>%
+  mutate(frequencies = n / sum(n)) %>%
+  filter(correct == \"true\")
+```"

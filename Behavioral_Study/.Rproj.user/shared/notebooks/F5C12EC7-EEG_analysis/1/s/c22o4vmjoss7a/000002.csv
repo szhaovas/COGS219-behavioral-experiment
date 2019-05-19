@@ -1,0 +1,6 @@
+"0","```r
+ggplot(lag8.n2.difference.summary, aes(x=t, y=M, ymin=M-SE, ymax=M+SE))+
+  geom_ribbon(aes(fill=distractor.condition), alpha=0.3)+
+  geom_line(aes(color=distractor.condition), size=1)+
+  theme_bw()
+```"

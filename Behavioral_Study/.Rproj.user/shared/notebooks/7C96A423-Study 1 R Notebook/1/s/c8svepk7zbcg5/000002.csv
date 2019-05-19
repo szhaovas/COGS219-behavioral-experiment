@@ -1,0 +1,16 @@
+"0","```r
+pp.plot.data <- pp.difference.waves %>%
+  group_by(t, distractor.condition) %>%
+  summarize(M = mean(difference.wave))
+ggplot(pp.plot.data, aes(x=t, y=M, color=distractor.condition)) +
+  geom_line() +
+  geom_vline(xintercept = 0) +
+  scale_x_continuous(limits = c(-200,800), expand=c(0,0))+
+  annotate(\"rect\", fill=\"black\", alpha=0.1, xmin=405, xmax=615, ymin=-1, ymax=2) +
+  scale_y_reverse() +
+  ggtitle(\"Posterior Positivity Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"lag8 - baseline lag8 (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = -100, y = 1, label = \"Distractor \n onset\")
+```"

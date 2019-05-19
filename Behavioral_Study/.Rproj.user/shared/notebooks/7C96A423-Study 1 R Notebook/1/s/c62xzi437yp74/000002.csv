@@ -1,0 +1,10 @@
+"0","```r
+p3b.target.data <- eeg.data %>%
+  filter(electrode %in% c(54,55,79,78,61,62))
+p3b.target.difference.waves <- p3b.target.data %>%
+  spread(lag.condition, voltage) %>%
+  mutate(difference.wave = Lag2 - Lag8) %>% 
+  select(-Lag2, -Lag8) %>%
+  group_by(subject, t, distractor.condition) %>% 
+  summarize(M.difference.wave = mean(difference.wave))
+```"

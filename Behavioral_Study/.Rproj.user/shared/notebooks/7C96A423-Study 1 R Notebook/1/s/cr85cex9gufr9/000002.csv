@@ -1,0 +1,18 @@
+"0","```r
+n2.distractor.t.test.data <- n2.distractor.anova.data %>% 
+  group_by(subject, distractor.condition) %>%
+  summarize(peak = min(peak))
+t.test(peak ~ distractor.condition, data=n2.distractor.t.test.data, alternative=c(\"less\"), paired=TRUE)
+```"
+"1","
+	Paired t-test
+
+data:  peak by distractor.condition
+t = -1.161, df = 21, p-value = 0.1293
+alternative hypothesis: true difference in means is less than 0
+95 percent confidence interval:
+      -Inf 0.1379766
+sample estimates:
+mean of the differences 
+             -0.2861961 
+"

@@ -1,0 +1,10 @@
+"0","```r
+n2.target.data <- eeg.data %>%
+  filter(electrode %in% c(64,68,69,89,94,95)) %>%
+  mutate(hemisphere = if_else(electrode > 70, \"right\",\"left\"))
+
+n2.target.difference.waves <- n2.target.data %>%
+  spread(lag.condition, voltage) %>%
+  mutate(difference.wave = Lag2 - Lag8) %>%
+  select(-Lag2, -Lag8)
+```"

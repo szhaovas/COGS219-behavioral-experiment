@@ -1,0 +1,18 @@
+"0","```r
+n2.target.plotting.data <- n2.target.difference.waves %>%
+  group_by(distractor.condition, t) %>%
+  summarize(M=mean(difference.wave))
+ggplot(n2.target.plotting.data, aes(x=t, y=M, color=distractor.condition))+
+  geom_line()+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=200)+
+  scale_y_reverse()+
+  scale_x_continuous(limits = c(-200,800), expand=c(0,0))+
+  annotate(\"rect\", xmin=405,xmax=585,ymin=-3.5,ymax=1, alpha=0.2)+
+  ggtitle(\"Target N2 Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"lag2 - lag8 (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = -80, y = 1, label = \"Distractor \n onset\") +
+  annotate(\"text\", x = 120, y = 1, label = \"Target \n onset\")
+```"

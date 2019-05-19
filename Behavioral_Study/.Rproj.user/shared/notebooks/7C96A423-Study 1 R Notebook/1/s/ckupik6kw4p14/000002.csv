@@ -1,0 +1,40 @@
+"0","```r
+p3b.correct.incorrect.difference.wave %>%
+  filter(t %in% 400:550) %>%
+  group_by(subject) %>% 
+  summarize(M = mean(difference.wave)) %>%
+  pull(M) %>%
+  t.test(mu=0, alternative = \"less\")
+```"
+"1","
+	One Sample t-test
+
+data:  .
+t = -1.1513, df = 21, p-value = 0.1313
+alternative hypothesis: true mean is less than 0
+95 percent confidence interval:
+     -Inf 0.157113
+sample estimates:
+mean of x 
+ -0.31766 
+"
+"0","```r
+p3b.correct.incorrect.difference.wave %>%
+  filter(t %in% 635:995) %>%
+  group_by(subject) %>%
+  summarize(M = mean(difference.wave)) %>%
+  pull(M) %>% 
+  t.test(mu=0, alternative = \"greater\")
+```"
+"1","
+	One Sample t-test
+
+data:  .
+t = 3.374, df = 21, p-value = 0.001434
+alternative hypothesis: true mean is greater than 0
+95 percent confidence interval:
+ 0.6062604       Inf
+sample estimates:
+mean of x 
+ 1.237275 
+"

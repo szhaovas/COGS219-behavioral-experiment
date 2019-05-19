@@ -1,0 +1,4 @@
+"0","```r
+ggplot(processed_data, aes(x=target_lag, y=frequencies)) +
+  geom_line(aes(color=distractor_type))
+```"

@@ -1,0 +1,6 @@
+"0","```r
+subject.segment.log <- read_csv('eeg-segment-count.csv') 
+good.subjects <- subject.segment.log %>%
+  filter(P >= 0.8) %>%
+  pull(Subject)
+```"

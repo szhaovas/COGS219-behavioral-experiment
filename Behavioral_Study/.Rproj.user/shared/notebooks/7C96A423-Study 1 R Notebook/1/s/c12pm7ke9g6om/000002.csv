@@ -1,0 +1,18 @@
+"0","```r
+n2.distractor.t.test.data %>%
+  filter(distractor.condition == \"Negative\") %>%
+  pull(peak) %>%
+  t.test(mu=0, alternative=\"less\")
+```"
+"1","
+	One Sample t-test
+
+data:  .
+t = -2.8582, df = 21, p-value = 0.004707
+alternative hypothesis: true mean is less than 0
+95 percent confidence interval:
+       -Inf -0.3605607
+sample estimates:
+ mean of x 
+-0.9060238 
+"

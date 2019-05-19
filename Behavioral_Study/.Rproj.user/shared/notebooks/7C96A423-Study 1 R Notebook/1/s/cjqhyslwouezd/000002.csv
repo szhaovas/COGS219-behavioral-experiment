@@ -1,0 +1,57 @@
+"0","```r
+t.test(M ~ distractor.condition,
+       data = (p3b.target.anova.data %>%
+                 filter(distractor.condition != \"Negative\")),
+       paired = TRUE,
+       alternative=\"greater\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = 2.5738, df = 21, p-value = 0.008851
+alternative hypothesis: true difference in means is greater than 0
+95 percent confidence interval:
+ 0.1896923       Inf
+sample estimates:
+mean of the differences 
+              0.5723399 
+"
+"0","```r
+t.test(M ~ distractor.condition,
+       data = (p3b.target.anova.data %>%
+                 filter(distractor.condition != \"Neutral\")),
+       paired = TRUE,
+       alternative=\"greater\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = 2.5764, df = 21, p-value = 0.008801
+alternative hypothesis: true difference in means is greater than 0
+95 percent confidence interval:
+ 0.1406848       Inf
+sample estimates:
+mean of the differences 
+              0.4236161 
+"
+"0","```r
+t.test(M ~ distractor.condition,
+       data = (p3b.target.anova.data %>%
+                 filter(distractor.condition != \"Baseline\")),
+       paired = TRUE,
+       alternative=\"less\")
+```"
+"1","
+	Paired t-test
+
+data:  M by distractor.condition
+t = 0.81187, df = 21, p-value = 0.787
+alternative hypothesis: true difference in means is less than 0
+95 percent confidence interval:
+      -Inf 0.4639393
+sample estimates:
+mean of the differences 
+              0.1487238 
+"

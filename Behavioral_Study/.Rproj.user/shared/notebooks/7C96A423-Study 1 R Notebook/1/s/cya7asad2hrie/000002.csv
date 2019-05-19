@@ -1,0 +1,12 @@
+"0","```r
+n2.target.anova.data <- n2.target.difference.waves %>%
+  filter(t %in% 405:585) %>%
+  group_by(subject, distractor.condition, hemisphere) %>%
+  summarize(average = mean(difference.wave))
+ezANOVA(n2.target.anova.data, dv = average, within = c(hemisphere, distractor.condition), wid = subject)$ANOVA
+```"
+"1","                           Effect DFn DFd          F           p p<.05          ges
+2                      hemisphere   1  21 0.02319651 0.880400976       5.924205e-05
+3            distractor.condition   2  42 6.62055733 0.003167554     * 9.767684e-02
+4 hemisphere:distractor.condition   2  42 0.07772913 0.925347783       5.218901e-04
+"

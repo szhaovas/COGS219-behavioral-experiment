@@ -1,0 +1,21 @@
+"0","data <- read_csv('FacialBrightness.csv')"
+"2","Parsed with column specification:
+cols(
+  row = col_double(),
+  rt = col_character(),
+  final_value = col_character(),
+  start_value = col_character(),
+  time_elapsed = col_double(),
+  subject = col_character(),
+  facial_expressions = col_character(),
+  skinTone = col_character(),
+  starting_color = col_character(),
+  difference = col_character()
+)
+"
+"0","data_clean <- data %>%"
+"0","  filter(difference != 'NULL')"
+"0","data_clean$final_value = as.numeric(data_clean$final_value)"
+"0","data_clean$start_value = as.numeric(data_clean$start_value)"
+"0","data_clean$rt = as.numeric(data_clean$rt)"
+"0","data_clean$difference = as.numeric(data_clean$difference)"

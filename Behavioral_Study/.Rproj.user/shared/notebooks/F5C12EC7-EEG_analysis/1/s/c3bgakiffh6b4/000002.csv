@@ -1,0 +1,6 @@
+"0","```r
+lag8.n2.baseline <- lag8.n2 %>%
+  filter(distractor.condition == \"Baseline\") %>%
+  mutate(baseline.voltage = M.voltage) %>%
+  select(subject, t, baseline.voltage)
+```"

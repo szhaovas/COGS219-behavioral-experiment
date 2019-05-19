@@ -1,0 +1,12 @@
+"0","```r
+behavioral_plot_data <- behavioral_data %>%
+  group_by(distractor_type, target_lag) %>%
+  summarize(frequencies = mean(frequencies))
+ggplot(behavioral_plot_data, aes(x=target_lag, y=frequencies)) +
+  geom_line(aes(color=distractor_type)) +
+  scale_x_continuous(breaks = c(2, 8)) +
+  ggtitle(\"Behavioral Data Plot\") +
+  xlab(\"lag conditons\") +
+  ylab(\"rates of correctness\") +
+  theme(plot.title = element_text(size = 18, face=\"bold.italic\"))
+```"

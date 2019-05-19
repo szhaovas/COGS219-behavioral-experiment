@@ -1,0 +1,237 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. 
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(ez)
+library(tidyr)
+```
+
+```{r}
+data <- read_csv('FacialBrightness.csv')
+
+# excluding all but experimental trials
+data_clean <- data %>%
+  filter(difference != 'NULL')
+
+# cast columns to numeric data type
+data_clean$final_value = as.numeric(data_clean$final_value)
+data_clean$start_value = as.numeric(data_clean$start_value)
+data_clean$rt = as.numeric(data_clean$rt)
+data_clean$difference = as.numeric(data_clean$difference)
+
+# count how many trials are in each condition (before applying exclusion criteria)
+initial_condition_count <- data_clean %>%
+  group_by(facial_expressions, skinTone) %>%
+  summarize(count = length(difference))
+```
+
+```{r}
+# calculate the difference between the final and initial color patch brightness, used in
+# data_everinc and data_everdec
+data_filter_starter <- data_clean %>%
+  mutate(final_start_difference = final_value - start_value)
+
+# The following 5 data frames each contains the participants excluded for an exclusion criteria
+# exclude when a participant hasn't adjusted the color patch for any of the 6 trials
+data_nodiff.count <- data_filter_starter %>%
+  filter(final_start_difference == 0) %>%
+  group_by(subject) %>%
+  summarize(nodiff.fail = length(final_start_difference) == 6)
+
+# exclude when a participant has more then 4 unnaturally quick responses
+# (try changing the rt to 3000 and see initial_condition_count and condition_count)
+data_lowrt.count <- data_filter_starter %>%
+  filter(rt < 500) %>%
+  group_by(subject) %>%
+  summarize(lowrt.fail = length(rt) > 4)
+
+# exclude when a participant has either minimum or maximum color patch brightness for all 6
+# trials
+data_xtremefv.count <- data_filter_starter %>%
+  filter(final_value == 0 | final_value == 1) %>%
+  group_by(subject) %>%
+  summarize(xtremefv.fail = length(final_value) == 6)
+
+# exclude when a participant increases brightness for all 6 trials
+data_everinc.count <- data_filter_starter %>%
+  filter(final_start_difference > 0) %>%
+  group_by(subject) %>%
+  summarize(everinc.fail = length(final_start_difference) == 6)
+
+# exclude when a participant decreases brightness for all 6 trials
+data_everdec.count <- data_filter_starter %>%
+  filter(final_start_difference < 0) %>%
+  group_by(subject) %>%
+  summarize(everdec.fail = length(final_start_difference) == 6)
+
+# exclude all participants who are excluded in at least one of the criteria
+data_filtered <- data_filter_starter %>%
+  left_join(data_nodiff.count) %>%
+  left_join(data_lowrt.count) %>%
+  left_join(data_xtremefv.count) %>%
+  left_join(data_everinc.count) %>%
+  left_join(data_everdec.count) %>%
+  replace_na(list(nodiff.fail = FALSE, lowrt.fail = FALSE, xtremefv.fail = FALSE, everinc.fail = FALSE, everdec.fail = FALSE)) %>%
+  filter(!(nodiff.fail | lowrt.fail | xtremefv.fail | everinc.fail | everdec.fail)) %>% 
+  select(subject, facial_expressions, skinTone, difference)
+```
+
+```{r}
+# ANOVA
+anova_data <- data_filtered %>%
+  group_by(facial_expressions, skinTone, subject) %>%
+  summarize(M.difference = mean(difference))
+
+ezANOVA(anova_data, dv = M.difference, between = c(facial_expressions, skinTone), wid = subject)$ANOVA
+
+# group participants by smiling/frowning conditions, and compare means between 2 groups
+facial_expression_mean_comparison <- anova_data %>%
+  group_by(facial_expressions) %>%
+  summarize(mean = mean(M.difference))
+```
+```{r}
+# T-tests on skin tone effects
+ttest_data <- data_filtered %>%
+  group_by(skinTone, subject) %>%
+  summarize(M.difference = mean(difference))
+
+levels(factor(data_filtered$skinTone))
+```
+
+```{r}
+dark_medium <- ttest_data %>%
+  filter(skinTone %in% c('dark', 'medium'))
+
+t.test(M.difference ~ skinTone, data=dark_medium, alternative=c("less"))
+```
+
+```{r}
+medium_light <- ttest_data %>%
+  filter(skinTone %in% c('medium', 'light'))
+
+t.test(M.difference ~ skinTone, data=medium_light, alternative=c("greater"))
+```
+
+```{r}
+dark_light <- ttest_data %>%
+  filter(skinTone %in% c('dark', 'light'))
+
+t.test(M.difference ~ skinTone, data=dark_light, alternative=c("less"))
+```
+```{r}
+facial.expression_plot.data <- data_filtered %>%
+  group_by(facial_expressions, subject) %>%
+  summarize(M.difference = mean(difference))
+
+ggplot(facial.expression_plot.data, aes(x = facial_expressions, y = M.difference, fill = facial_expressions)) +
+  geom_boxplot(notch = FALSE)
+```
+
+```{r}
+ggplot(ttest_data, aes(x = skinTone, y = M.difference, fill = skinTone)) +
+  geom_boxplot(notch = FALSE)
+```
+```{r}
+# The following sections perform the exploratory analysis by making the numbers of participants
+# under all conditions equal
+condition_count <- data_filtered %>%
+  group_by(facial_expressions,skinTone) %>%
+  summarize(count = length(difference))
+```
+
+```{r}
+# Each condition should contain 35 participants
+min_count <- 35
+
+# randomly sample 35 participants from each of the 6 conditions, and use their trials
+frown_dark <- data_filtered %>%
+  filter(facial_expressions == "frown" & skinTone == "dark") %>%
+  group_by(subject) %>%
+  summarize()
+frown_dark <- frown_dark[sample(nrow(frown_dark),min_count),]
+
+frown_light <- data_filtered %>%
+  filter(facial_expressions == "frown" & skinTone == "light") %>%
+  group_by(subject) %>%
+  summarize()
+frown_light <- frown_light[sample(nrow(frown_light),min_count),]
+
+frown_medium <- data_filtered %>%
+  filter(facial_expressions == "frown" & skinTone == "medium") %>%
+  group_by(subject) %>%
+  summarize()
+frown_medium <- frown_medium[sample(nrow(frown_medium),min_count),]
+
+smile_dark <- data_filtered %>%
+  filter(facial_expressions == "smile" & skinTone == "dark") %>%
+  group_by(subject) %>%
+  summarize()
+smile_dark <- smile_dark[sample(nrow(smile_dark),min_count),]
+
+smile_light <- data_filtered %>%
+  filter(facial_expressions == "smile" & skinTone == "light") %>%
+  group_by(subject) %>%
+  summarize()
+smile_light <- smile_light[sample(nrow(smile_light),min_count),]
+
+smile_medium <- data_filtered %>%
+  filter(facial_expressions == "smile" & skinTone == "medium") %>%
+  group_by(subject) %>%
+  summarize()
+smile_medium <- smile_medium[sample(nrow(smile_medium),min_count),]
+
+participant_list <- rbind(frown_dark,frown_light,frown_medium,smile_dark,smile_light,smile_medium)
+
+data_downsized <- data_filtered %>%
+  filter(subject %in% participant_list$subject)
+```
+
+```{r}
+# conduct the same tests
+anova_data <- data_downsized %>%
+  group_by(facial_expressions, skinTone, subject) %>%
+  summarize(M.difference = mean(difference))
+
+ezANOVA(anova_data, dv = M.difference, between = c(facial_expressions, skinTone), wid = subject)$ANOVA
+```
+
+```{r}
+ttest_data <- data_downsized %>%
+  group_by(skinTone, subject) %>%
+  summarize(M.difference = mean(difference))
+
+levels(factor(data_downsized$skinTone))
+```
+
+```{r}
+dark_medium <- ttest_data %>%
+  filter(skinTone %in% c('dark', 'medium'))
+
+t.test(M.difference ~ skinTone, data=dark_medium, alternative=c("less"))
+```
+
+```{r}
+medium_light <- ttest_data %>%
+  filter(skinTone %in% c('medium', 'light'))
+
+t.test(M.difference ~ skinTone, data=medium_light, alternative=c("greater"))
+```
+
+```{r}
+dark_light <- ttest_data %>%
+  filter(skinTone %in% c('dark', 'light'))
+
+t.test(M.difference ~ skinTone, data=dark_light, alternative=c("less"))
+```
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).

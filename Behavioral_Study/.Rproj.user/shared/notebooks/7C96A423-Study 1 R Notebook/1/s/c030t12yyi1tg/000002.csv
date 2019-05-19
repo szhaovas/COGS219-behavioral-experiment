@@ -1,0 +1,21 @@
+"0","```r
+all.behavioral.data <- read_csv('behavioral-data-tidy.csv', progress = FALSE) %>%
+  filter(participant_id %in% good.subjects)
+num_each <- all.behavioral.data %>%
+  filter(target_orientation %in% c('left', 'right')) %>%
+  group_by(participant_id, distractor_type, target_lag, correct) %>%
+  summarize(num_each = length(correct))
+behavioral_data <- all.behavioral.data %>%
+  group_by(participant_id, distractor_type, target_lag) %>%
+  summarize(num = length(correct)) %>%
+  left_join(num_each) %>%
+  mutate(frequencies = num_each / num) %>%
+  filter(correct) %>%
+  select(-num_each, -num, -correct)
+ezANOVA(behavioral_data, dv = frequencies, within = c(target_lag, distractor_type), wid = participant_id)$ANOVA
+```"
+"1","                      Effect DFn DFd         F            p p<.05       ges
+1                 target_lag   1  21 127.98458 2.142512e-10     * 0.6734267
+2            distractor_type   2  42 100.44301 9.880578e-17     * 0.6124139
+3 target_lag:distractor_type   2  42  97.47497 1.661295e-16     * 0.6059513
+"

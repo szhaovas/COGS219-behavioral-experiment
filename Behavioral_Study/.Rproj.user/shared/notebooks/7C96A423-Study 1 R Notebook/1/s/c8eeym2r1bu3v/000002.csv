@@ -1,0 +1,18 @@
+"0","```r
+p3b.target.plot.data <- p3b.target.difference.waves %>%
+  group_by(t, distractor.condition) %>%
+  summarize(M = mean(M.difference.wave))
+ggplot(p3b.target.plot.data, aes(x=t,y=M, color=distractor.condition))+
+  geom_line()+
+  scale_y_reverse()+
+  scale_x_continuous(limits = c(-200,1200), expand=c(0,0))+
+  geom_vline(xintercept=0)+
+  geom_vline(xintercept=200)+
+  annotate(\"rect\", xmin=635,xmax=995,ymin=-4,ymax=5, alpha=0.2)+
+  ggtitle(\"Target P3b Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"lag2 - lag8 (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = -100, y = 1, label = \"Distractor \n onset\") +
+  annotate(\"text\", x = 120, y = 1, label = \"Target \n onset\")
+```"

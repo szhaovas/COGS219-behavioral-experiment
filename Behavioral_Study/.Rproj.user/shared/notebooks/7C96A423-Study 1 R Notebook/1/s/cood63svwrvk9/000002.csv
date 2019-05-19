@@ -1,0 +1,23 @@
+"0","```r
+p3b.distractor.data <- eeg.data %>%
+  filter(electrode %in% c(54,55,79,78,61,62)) %>%
+  filter(lag.condition == \"Lag8\") %>%
+  select(-lag.condition)
+p3b.distractor.baseline <- p3b.distractor.data %>% 
+  filter(distractor.condition == \"Baseline\") %>% 
+  mutate(baseline.voltage = voltage) %>% 
+  select(-voltage, -distractor.condition)
+# need to merge in lag 2 baseline - lag 8 baseline
+p3b.distractor.baseline.difference <- eeg.data %>% 
+  filter(electrode %in% c(54,55,79,78,61,62)) %>% 
+  filter(distractor.condition == \"Baseline\") %>%
+  spread(lag.condition, voltage) %>%
+  mutate(difference.wave = Lag2 - Lag8) %>%
+  select(-Lag2, -Lag8)
+p3b.distractor.difference.waves <- p3b.distractor.data %>%
+  inner_join(p3b.distractor.baseline, by=c(\"subject\", \"t\", \"electrode\")) %>%
+  filter(distractor.condition != \"Baseline\") %>%
+  mutate(difference.wave = voltage - baseline.voltage) %>% 
+  select(-baseline.voltage, -voltage) %>% 
+  rbind(p3b.distractor.baseline.difference)
+```"

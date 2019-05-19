@@ -1,0 +1,22 @@
+{
+    "collab_server" : "",
+    "contents" : "---\ntitle: \"R Notebook\"\noutput: html_notebook\n---\n\nThis is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. \n\nTry executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*. \n\n```{r}\nlibrary(readr)\nlibrary(dplyr)\nlibrary(ggplot2)\n```\n\n```{r}\ndata <- read_csv('FacialBrightness.csv')\n\ndata_clean <- data %>%\n  filter(difference != 'NULL')\n\ndata_clean$final_value = as.numeric(data_clean$final_value)\ndata_clean$start_value = as.numeric(data_clean$start_value)\ndata_clean$rt = as.numeric(data_clean$rt)\ndata_clean$difference = as.numeric(data_clean$difference)\n```\n\n```{r}\ndata_filter_starter <- data_clean %>%\n  mutate(final_start_difference = final_value - start_value)\n\ndata_nodiff.count <- data_filter_starter %>%\n  filter(final_start_difference == 0) %>%\n  group_by(subject) %>%\n  summarize(nodiff.fail = (length(final_start_difference) / 6) == 1)\n\ndata_lowrt.count <- data_filter_starter %>%\n  filter(rt < 500) %>%\n  group_by(subject) %>%\n  summarize(lowrt.fail = (length(rt) / 6) > 0.6)\n\ndata_xtremefv.count <- data_filter_starter %>%\n  filter(final_value == 0 | final_value == 1) %>%\n  group_by(subject) %>%\n  summarize(xtremefv.fail = (length(final_value) / 6) == 1)\n\ndata_everinc.count <- data_filter_starter %>%\n  filter(final_start_difference > 0) %>%\n  group_by(subject) %>%\n  summarize(everinc.fail = (length(final_start_difference) / 6) == 1)\n\ndata_everdec.count <- data_filter_starter %>%\n  filter(final_start_difference < 0) %>%\n  group_by(subject) %>%\n  summarize(everdec.fail = (length(final_start_difference) / 6) == 1)\n\ndata_filtered <- data_filter_starter %>%\n  left_join(data_nodiff.count) %>%\n  left_join(data_lowrt.count) %>%\n  left_join(data_xtremefv.count) %>%\n  left_join(data_everinc.count) %>%\n  left_join(data_everdec.count) %>%\n  replace_na(list(nodiff.fail = FALSE, lowrt.fail = FALSE, xtremefv.fail = FALSE, everinc.fail = FALSE, everdec.fail = FALSE)) %>%\n  filter(!(nodiff.fail | lowrt.fail | xtremefv.fail | everinc.fail | everdec.fail)) %>% \n  select(subject, facial_expressions, skinTone, difference)\n```\n\n```{r}\nezANOVA(data_filtered, dv = difference, between = c(facial_expressions, skinTone), wid = subject)$ANOVA\n```\n```{r}\nt.test(difference ~ facial_expressions, data=data_filtered, alternative=c(\"less\"), paired=TRUE)\n```\n```{r}\ndark_medium <- data_filtered %>%\n  filter(skinTone %in% c('dark', 'medium'))\n#levels(factor(data_filtered$facial_expressions))\nt.test(difference ~ facial_expressions, data=dark_medium, alternative=c(\"less\"), paired=TRUE)\n```\n\n```{r}\nmedium_light <- data_filtered %>%\n  filter(skinTone %in% c('medium', 'light'))\n\nt.test(difference ~ facial_expressions, data=medium_light, alternative=c(\"less\"), paired=TRUE)\n```\n\n```{r}\ndark_light <- data_filtered %>%\n  filter(skinTone %in% c('dark', 'light'))\n\nt.test(difference ~ facial_expressions, data=dark_light, alternative=c(\"less\"), paired=TRUE)\n```\nAdd a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.\n\nWhen you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).\n",
+    "created" : 1555339481761.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "906773317",
+    "id" : "1E065EE0",
+    "lastKnownWriteTime" : 1555359273,
+    "last_content_update" : 1555359273910,
+    "path" : "~/Downloads/Behavioral_Study/Behavioral_Study_Notebook.Rmd",
+    "project_path" : "Behavioral_Study_Notebook.Rmd",
+    "properties" : {
+        "chunk_output_type" : "inline",
+        "tempName" : "Untitled1"
+    },
+    "relative_order" : 1,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

@@ -1,0 +1,4 @@
+"0","```r
+eeg.data.correct.incorrect <- read_csv('eeg-data-correct-incorrect-tidy.csv', progress =FALSE) %>%
+  filter(subject %in% good.subjects)
+```"

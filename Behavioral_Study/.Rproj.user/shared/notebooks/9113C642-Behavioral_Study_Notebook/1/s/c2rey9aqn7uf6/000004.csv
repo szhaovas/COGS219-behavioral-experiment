@@ -1,0 +1,3 @@
+"0","t.test(difference ~ facial_expressions, data=data_filtered, alternative=c(""less""), paired=TRUE)"
+"2","Error in complete.cases(x, y) : not all arguments have the same length
+"

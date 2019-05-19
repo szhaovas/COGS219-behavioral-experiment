@@ -1,0 +1,8 @@
+"0","```r
+n2.pp.correct.incorrect <- eeg.data.correct.incorrect %>%
+  filter(electrode %in% c(64,68,69,89,94,95))
+n2.pp.correct.incorrect.difference.wave <- n2.pp.correct.incorrect %>%
+  spread(correct.condition, voltage) %>%
+  mutate(difference.wave = Incorrect - Correct) %>%
+  select(-Correct, -Incorrect)
+```"

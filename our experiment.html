@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html>
   <head>
     <script src="jspsych.js"></script>
@@ -11,12 +11,6 @@
   </head>
   <body></body>
   <script>
-/*change log
-  1. Add saturation as an attribute of filename and read from it to generate saturation of the matching block
-  2. dim and bright_value should be relative to the original hue of the facial image, also make sure it's RANDOM
-  3. practice trial
-  4. fullscreen
-  */
 
   // If you want to add more pictures to the stimuli pool, please be sure to add
   // them in .jpg form in the folder /img/
@@ -69,6 +63,7 @@
   let this_facial_expression = null;
   let this_skinTone = null;
 
+
   serverComm.assign_condition(subject_id, 6,
     function(response){
       assigned_condition = response.assignedCondition;
@@ -78,6 +73,7 @@
       document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You will not be able to complete the experiment. We are sorry for the trouble.</p>';
     }
   );
+
 
   function start_experiment() {
     switch (assigned_condition) {
@@ -106,6 +102,13 @@
         this_skinTone = 'dark';
     }
 
+    // ----------------------------------------------------------------
+    // The following codes were designed on the assumption that there can be
+    // more than 6 faces and more than 3 hues to choose from, the actual hues
+    // and brightnesses would be chosen randomly and unrepeatedly from the pool
+    // However we eventually used only 6 faces and 3 hues, but the codes still
+    // work so I left them be.
+    // ----------------------------------------------------------------
     // randomly selects [num_hues] hues
     const hue_matcher = new RegExp(this_facial_expression + '~' + this_skinTone);
     const hue_pool = (function() {
@@ -120,6 +123,7 @@
       return result;
     }());
     const hues = jsPsych.randomization.sampleWithoutReplacement(hue_pool, num_hues);
+
 
     // randomly select [num_faces_each_hue] faces for each hue selected in the previous step
     // and create the images array containing the images that will be used in this run
@@ -141,6 +145,7 @@
       }
       return result;
     }());
+
 
     // These lines make sure each image is shown in 1 of the 2 starting colors, either starting dim or starting bright
     const full_design = (function() {
@@ -164,9 +169,11 @@
     }());
 
     // This is the reconstruction function
-    // It reads the RGB values of the image used for 1 trial (from the file names, which is why they must include RGB values)
+    // It reads the HSL values of the image used for 1 trial (from the file names, which is why they must include HSL values)
     // and use those to construct the color selection square to be displayed below the image
-    // By pressing either F or J, participants are only allowed to modify to "Red value" of the color selection square
+    // By pressing either B or D, participants are only allowed to modify to "Lightness" of the adjustable color patch
+    // reconstruction plugin was modified to take 2 arguments instead of 1, so that we could run multiple reconstruction
+    // trials for the same participant
     var experimental_trial_func = function(param, stim){
       let h = stim.split('~')[2];
       let s = stim.split('~')[4];
@@ -193,7 +200,7 @@
         button_label: 'Next',
         on_finish: function(data){
           // starting_color can be either "bright" or "dim"
-          // difference is the difference between stimulus image's and the final color match square's brightnesses
+          // difference is the difference between stimulus image's and the final adjustable color patch's brightnesses
           data.starting_color = this.starting_color;
           data.difference = data.final_value * 100 - this.orig_brightness;
         }
@@ -254,11 +261,11 @@
       return result;
     }());
 
-    // For each trial, add a subject_id generated at the start and the facial expression used in his/her experiment run
+    // add in subject_id and the id used for condition assignment
     jsPsych.data.addProperties({
       worker_id: id,
-      assigned_condition: assigned_condition,
       subject: subject_id,
+      assigned_condition: assigned_condition,
       facial_expressions: this_facial_expression,
       skinTone: this_skinTone
     });
@@ -267,8 +274,8 @@
       timeline: [start_fullscreen, practice_trial, experimental_trials, save, conclusion, end_fullscreen],
       preload_images: preloady,
       show_preload_progress_bar: false
-      //on_finish: function() { jsPsych.data.displayData(); }
     });
-  }
-  </script>
+  }</script>
 </html>
+
+2210

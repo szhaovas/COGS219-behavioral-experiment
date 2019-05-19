@@ -1,0 +1,5 @@
+"0","```r
+lag8.n2.difference.summary <- lag8.n2.difference %>%
+  group_by(t, distractor.condition) %>%
+  summarize(M = mean(difference.wave), SE = sd(difference.wave) / sqrt(n()))
+```"

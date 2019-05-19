@@ -1,0 +1,11 @@
+"0","```r
+p3b.target.anova.data <- p3b.target.difference.waves %>% 
+  filter(t %in% 635:995) %>%
+  group_by(subject, distractor.condition) %>% 
+  summarize(M = mean(M.difference.wave))
+p3b.target.anova <- ezANOVA(p3b.target.anova.data, wid=subject, dv=M, within=c(distractor.condition)) 
+p3b.target.anova$ANOVA
+```"
+"1","                Effect DFn DFd       F          p p<.05       ges
+2 distractor.condition   2  42 4.80854 0.01316961     * 0.0329214
+"

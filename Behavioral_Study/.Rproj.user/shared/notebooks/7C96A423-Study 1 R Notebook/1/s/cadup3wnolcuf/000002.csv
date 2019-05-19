@@ -1,0 +1,5 @@
+"0","```r
+# use progress=FALSE because progress bar seems to slow down read_csv in R notebooks.
+eeg.data <- read_csv('eeg-data-tidy.csv', progress= FALSE) %>% 
+  filter(subject %in% good.subjects)
+```"

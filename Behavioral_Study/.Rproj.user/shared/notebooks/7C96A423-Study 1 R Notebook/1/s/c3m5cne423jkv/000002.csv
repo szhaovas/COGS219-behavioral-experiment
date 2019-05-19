@@ -1,0 +1,22 @@
+"0","```r
+n2.pp.correct.incorrect.plot.data <- n2.pp.correct.incorrect %>%
+  group_by(correct.condition, t) %>% 
+  summarize(M = mean(voltage)) 
+n2.pp.correct.incorrect.difference.wave.plot.data <- n2.pp.correct.incorrect.difference.wave %>%
+  group_by(t) %>% 
+  summarize(M = mean(difference.wave)) 
+ggplot(n2.pp.correct.incorrect.plot.data, aes(x=t,y=M,color=correct.condition))+ 
+  geom_line()+ 
+  geom_line(data=n2.pp.correct.incorrect.difference.wave.plot.data, aes(color=NA))+
+  scale_y_reverse()+
+  scale_x_continuous(limits = c(-200,800), expand=c(0,0))+
+  annotate(\"rect\", xmin=250,xmax=350,ymin=-8,ymax=2, alpha=0.2)+
+  annotate(\"rect\", xmin=410,xmax=650,ymin=-8,ymax=2, alpha=0.2)+
+  ggtitle(\"Distractor N2 and Posterior Positivity Plot\") +
+  xlab(\"time (ms)\") +
+  ylab(\"activations (μV)\") +
+  theme(plot.title = element_text(size=18, face=\"bold.italic\")) +
+  annotate(\"text\", x = 300, y = -9, label = \"Distractor \n N2\") +
+  annotate(\"text\", x = 540, y = -9, label = \"Posterior \n Positivity\") +
+  annotate(\"text\", x = 740, y = -0.5, label = \"Incorrect \n - Correct\")
+```"
