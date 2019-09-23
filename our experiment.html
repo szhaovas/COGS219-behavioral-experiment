@@ -155,12 +155,17 @@
       for (let i = 0; i < num_images; i++) {
         let this_stimulus = shuffled_images.pop();
         let this_starting_color = starting_colors.pop();
-        let this_orig_brightness = parseFloat(this_stimulus.slice(0, -4).split('~')[5]);
+        let image_parameters = this_stimulus.slice(0, -4).split('~');
+        let this_orig_brightness = parseFloat(image_parameters[5]);
+        let this_hue = parseFloat(image_parameters[2]);
+        let this_facial_id = parseFloat(image_parameters[3]);
         let this_starting_value = (this_starting_color === 'dim') ? (Math.random() * this_orig_brightness / 100) : ((this_orig_brightness + Math.random() * (100 - this_orig_brightness)) / 100);
         let obj = {
           stimulus: this_stimulus,
           starting_color: this_starting_color,
           orig_brightness: this_orig_brightness,
+          hue: this_hue,
+          facial_id: this_facial_id,
           starting_value: this_starting_value
         }
         result.push(obj);
@@ -194,6 +199,8 @@
         starting_color: jsPsych.timelineVariable('starting_color'),
         orig_brightness: jsPsych.timelineVariable('orig_brightness'),
         starting_value: jsPsych.timelineVariable('starting_value'),
+        hue: jsPsych.timelineVariable('hue'),
+        facial_id: jsPsych.timelineVariable('facial_id'),
         step_size: 0.025,
         key_increase: 'b',
         key_decrease: 'd',
@@ -203,6 +210,8 @@
           // difference is the difference between stimulus image's and the final adjustable color patch's brightnesses
           data.starting_color = this.starting_color;
           data.difference = data.final_value * 100 - this.orig_brightness;
+          data.hue = this.hue;
+          data.facial_id = this.facial_id;
         }
       }],
       timeline_variables: full_design
