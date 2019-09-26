@@ -59,20 +59,27 @@
   const num_images = num_hues * num_faces_each_hue;
   const id = jsPsych.data.getURLVariable('prolific_pid');
   const subject_id = jsPsych.randomization.randomID(20);
+  const debug = true;
   let assigned_condition = null;
   let this_facial_expression = null;
   let this_skinTone = null;
 
 
-  serverComm.assign_condition(subject_id, 6,
-    function(response){
-      assigned_condition = response.assignedCondition;
-      start_experiment();
-    },
-    function(){
-      document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You will not be able to complete the experiment. We are sorry for the trouble.</p>';
-    }
-  );
+  if (debug) {
+    assigned_condition = 0;
+    start_experiment();
+  }
+  else {
+    serverComm.assign_condition(subject_id, 6,
+      function(response){
+        assigned_condition = response.assignedCondition;
+        start_experiment();
+      },
+      function(){
+        document.querySelector('body').innerHTML = '<p>Our apologies. There was a technical error on our end while loading the experiment.</p><p>You will not be able to complete the experiment. We are sorry for the trouble.</p>';
+      }
+    );
+  }
 
 
   function start_experiment() {
@@ -279,12 +286,22 @@
       skinTone: this_skinTone
     });
 
-    jsPsych.init({
-      timeline: [start_fullscreen, practice_trial, experimental_trials, save, conclusion, end_fullscreen],
-      preload_images: preloady,
-      show_preload_progress_bar: false
-    });
+    if (debug) {
+      jsPsych.init({
+        timeline: [practice_trial, experimental_trials],
+        preload_images: preloady,
+        show_preload_progress_bar: false,
+        on_finish: function() {
+            jsPsych.data.displayData();
+        }
+      });
+    }
+    else {
+      jsPsych.init({
+        timeline: [start_fullscreen, practice_trial, experimental_trials, save, conclusion, end_fullscreen],
+        preload_images: preloady,
+        show_preload_progress_bar: false
+      });
+    }
   }</script>
 </html>
-
-2210
